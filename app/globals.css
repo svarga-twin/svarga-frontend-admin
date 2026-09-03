@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* =========================================================
+   SVARGA Admin — Design Tokens
+   Palet disamakan dengan Web-App Pengguna (svarga-app) supaya
+   satu identitas visual di kedua aplikasi.
+   ========================================================= */
+@theme {
+  --color-canopy-950: #16241a;
+  --color-canopy-900: #1e3323;
+  --color-canopy-800: #2c4a30;
+  --color-canopy-700: #3f6e45;
+  --color-canopy-600: #4b7750;
+  --color-canopy-500: #5f8f64;
+  --color-canopy-300: #7e9d82;
+  --color-canopy-200: #b7c8b9;
+  --color-canopy-100: #e6f1e7;
+
+  --color-sand-50: #faf9f6;
+  --color-sand-100: #f2f5f3;
+  --color-sand-200: #e7ece8;
+
+  --color-ochre-600: #b9822c;
+  --color-ochre-500: #d4a039;
+  --color-ochre-100: #f6e8c8;
+
+  --color-ink-900: #1a241b;
+  --color-ink-700: #3a453d;
+  --color-ink-500: #6b7a70;
+
+  --color-alert-600: #b3492d;
+  --color-alert-100: #fbeae5;
+  --color-info-600: #3e6e8e;
+  --color-info-100: #e6eef3;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-sand-100);
+  color: var(--color-ink-900);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+.font-data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-canopy-200);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
