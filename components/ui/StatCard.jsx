@@ -1,4 +1,4 @@
-import * as Icons from "lucide-react";
+import Icons from "@/components/ui/AppIcon";
 
 const toneClasses = {
   neutral: "bg-canopy-100 text-canopy-700",

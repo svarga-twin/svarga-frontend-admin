@@ -65,15 +65,48 @@ prisma/schema.prisma    Skema PostgreSQL — superset dari src/db/schema.sql
                         akhirnya bisa membaca database yang sama
 ```
 
+## Autentikasi Admin
+
+Login admin sekarang lewat **Laravel Sanctum** (tabel `users` yang sama
+dengan `svarga-app`), bukan lagi Prisma/Supabase. Alurnya: `app/login/page.js`
+→ `app/api/auth/login/route.js` memanggil `POST {LARAVEL_API_URL}/auth/login`,
+lalu memeriksa field `is_admin` pada user yang dikembalikan — kalau `true`,
+sesi browser dibuat lewat cookie HMAC ringan (`lib/auth.js`, tidak butuh
+database sendiri untuk verifikasi sesi).
+
+Kredensial admin default (di-seed lewat `AdminUserSeeder` di
+`svarga-backend`): `admin@svarga.id` / `svarga123` — **ganti di produksi**.
+
+Mode mock (kalau `LARAVEL_API_URL` maupun `DATABASE_URL` kosong) tetap
+memakai kredensial demo yang sama, tanpa perlu backend apa pun.
+
+`scripts/createAdminUser.js` dan `prisma/seed.js` adalah peninggalan alur
+lama (Prisma/Supabase) — tidak lagi dipakai untuk login, dibiarkan ada
+kalau-kalau masih dibutuhkan untuk domain lain yang belum dipindah
+(Pengguna, Laporan, dst).
+
 ## Relasi dengan uji coba sensor di `svarga-backend`
 
-Uji coba backend sensor suhu & kualitas udara (lihat README di
-`../svarga-backend` dan `../svarga-app`) saat ini berjalan lewat **Laravel +
-SQLite**, terpisah dari skema PostgreSQL/Prisma milik dashboard ini. Halaman
-`/sensor-iot` di sini masih memakai data mock (`getSensorList`,
-`getSensorStats` di `lib/services/sensorService.js`) dan belum disambungkan
-ke endpoint `sensors/live` / `sensors/latest` milik Laravel. Menyatukan dua
-sumber data sensor ini (Prisma `SensorReading` vs Laravel
-`sensor_readings`) adalah pekerjaan lanjutan yang belum dikerjakan pada
-iterasi ini — perlu diputuskan dulu satu sumber kebenaran (source of truth)
-sebelum menyambungkan dashboard admin ke sana.
+**Update:** Sensor IoT, Kalender BWI, Geofencing, dan Mood & Wellbeing
+sekarang bisa disambungkan ke `svarga-backend` (Laravel) yang sama dengan
+`svarga-app` — isi `LARAVEL_API_URL` di `.env` (lihat `.env.example`).
+Begitu diisi, keempat halaman itu otomatis memakai data Laravel (menang
+di atas Prisma/mock), jadi admin, app pengguna, dan backend benar-benar
+berbagi satu sumber data yang sama — data yang dikirim sensor lewat
+`svarga-app`/ESP32 langsung terlihat di dashboard ini tanpa proses
+tambahan.
+
+Domain yang **belum** tersambung ke Laravel (masih Prisma/mock apa
+adanya): Laporan & Analitik, Pengguna (butuh endpoint admin khusus di
+Laravel untuk daftar user terdaftar — belum dibuat), Notifikasi, dan
+Pengaturan.
+
+Catatan keterbatasan data saat memakai mode Laravel:
+- **Sensor IoT** hanya menampilkan 2 baris (suhu & kualitas udara) —
+  sesuai jumlah sensor yang benar-benar diuji coba di `svarga-backend`,
+  bukan jaringan 126 sensor seperti pada data contoh.
+- **Geofencing**: kolom "Luas Wilayah" selalu "-" karena Laravel belum
+  menyimpan `area_hectare` (field ini cuma ada di skema Prisma lama).
+- **Kalender BWI**: kolom "Rute Terkait", "Notifikasi Terkirim", "UMKM
+  Terlibat" selalu 0 — metrik ini belum ada penghitungnya di Laravel,
+  jadi ditampilkan apa adanya (bukan angka karangan) sampai fiturnya dibuat.

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import AdminCard from "@/components/ui/AdminCard";
-import * as Icons from "lucide-react";
+import Icons from "@/components/ui/AppIcon";
 
 const tabs = ["Profil", "Aplikasi", "Sensor IoT", "Geofencing", "Notifikasi", "Integrasi"];
 

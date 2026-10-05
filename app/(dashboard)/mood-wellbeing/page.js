@@ -4,7 +4,7 @@ import StatCard from "@/components/ui/StatCard";
 import LineTrendChart from "@/components/charts/LineTrendChart";
 import DonutStatChart from "@/components/charts/DonutStatChart";
 import { getMoodWellbeing } from "@/lib/services/moodService";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/ui/AppIcon";
 
 export const dynamic = "force-dynamic";
 

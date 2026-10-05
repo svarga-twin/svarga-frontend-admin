@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Activity, Navigation, Calendar, Cpu, Smile, MapPin,
   BarChart3, Users, Bell, Settings, Leaf, LogOut,
-} from "lucide-react";
+} from "@/components/ui/AppIcon";
 
 const menu = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },

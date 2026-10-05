@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/layout/AdminShell";
 import AdminCard from "@/components/ui/AdminCard";
 import StatCard from "@/components/ui/StatCard";
-import * as Icons from "lucide-react";
-import { CheckCheck } from "lucide-react";
+import Icons from "@/components/ui/AppIcon";
+import { CheckCheck } from "@/components/ui/AppIcon";
 
 const filters = ["Semua", "lingkungan", "festival", "sensor", "pengguna"];
 const filterLabel = { Semua: "Semua", lingkungan: "Lingkungan", festival: "Festival", sensor: "Sensor", pengguna: "Pengguna" };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import AdminCard from "@/components/ui/AdminCard";
 import AdminMap from "@/components/maps/AdminMap";
-import { Navigation, CheckCircle2, MapIcon, Clock, Activity, Volume2, Sun, Footprints, Bike, Car } from "lucide-react";
+import { Navigation, CheckCircle2, MapIcon, Clock, Activity, Volume2, Sun, Footprints, Bike, Car } from "@/components/ui/AppIcon";
 
 const modes = [
   { id: "jalan", icon: Footprints },

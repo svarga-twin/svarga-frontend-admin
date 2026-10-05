@@ -6,21 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "create-admin": "node scripts/createAdminUser.js"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
+    "lint": "eslint"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
     "@react-google-maps/api": "^2.20.8",
-    "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.34.0",
     "next": "16.3.3",
-    "prisma": "^6.19.3",
     "react": "19.2.8",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.8"

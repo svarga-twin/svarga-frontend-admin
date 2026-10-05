@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Leaf } from "lucide-react";
+import { Leaf } from "@/components/ui/AppIcon";
 
 export default function LoginPage() {
   const router = useRouter();

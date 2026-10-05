@@ -3,7 +3,7 @@ import AdminCard from "@/components/ui/AdminCard";
 import StatCard from "@/components/ui/StatCard";
 import StatusPill from "@/components/ui/StatusPill";
 import { getSensorList, getSensorStats } from "@/lib/services/sensorService";
-import { Eye, Pencil, Plus, Map } from "lucide-react";
+import { Eye, Pencil, Plus, Map } from "@/components/ui/AppIcon";
 
 export const dynamic = "force-dynamic";
 

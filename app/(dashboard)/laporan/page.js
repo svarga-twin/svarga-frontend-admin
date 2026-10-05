@@ -5,7 +5,7 @@ import LineTrendChart from "@/components/charts/LineTrendChart";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import { getMonitoringData } from "@/lib/services/monitoringService";
 import { getDashboardSummary } from "@/lib/services/dashboardService";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2 } from "@/components/ui/AppIcon";
 
 export const dynamic = "force-dynamic";
 
