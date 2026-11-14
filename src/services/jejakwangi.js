@@ -62,15 +62,12 @@ export const mood = {
   summary: (params) => api.get("/mood-logs/summary", params),
 };
 
-<<<<<<< HEAD
 // Eco-Coach: Asisten Laporan mingguan. Angka dihitung server dari database; AI hanya menjelaskan,
 // dan bila AI tidak tersedia server memberi ringkasan template. → { data: { teks, sumber: "ai"|"template" } }
 export const ecoCoach = {
   laporan: async () => unwrap(await api.post("/admin/eco-coach/laporan", undefined, { timeoutMs: 30_000 })),
 };
 
-=======
->>>>>>> 1ccb9e09cce22ea6fabbe45184c619d6f9f4d433
 // --- Endpoint tambahan khusus admin (lihat folder backend-patch/) ---
 export const devices = {
   list: () => api.get("/admin/sensor-devices"), // → { data, summary }
@@ -109,7 +106,6 @@ export async function loadKoridorSnapshots(koridors) {
   );
   return Object.fromEntries(results);
 }
-<<<<<<< HEAD
 
 // Lapor Koridor (laporan warga → tindak lanjut DLH). Lampiran dikirim multipart (FormData).
 export const reports = {
@@ -132,5 +128,26 @@ export const waste = {
   remove: (id) => api.del(`/admin/waste/${id}`),
   process: (id, undo = false) => api.post(`/admin/waste/${id}/process`, { undo }),
 };
-=======
->>>>>>> 1ccb9e09cce22ea6fabbe45184c619d6f9f4d433
+
+// Server Lokal & Tindak Lanjut (flowchart): Database per jam, Asisten Laporan AI, usulan, simulator, baseline, rapor, ekonomi, jadwal.
+export const engine = {
+  sumber: () => api.get("/admin/engine/sumber"), // → { data:[{kunci,nama,asal,terakhir,jumlah}], baris_per_jam, jam_terakhir }
+  hourly: (params) => api.get("/admin/engine/hourly", params),
+  recompute: async () => unwrap(await api.post("/admin/engine/recompute", undefined, { timeoutMs: 60_000 })),
+  neraca: async (days = 7) => unwrap(await api.get("/admin/engine/neraca", { days })),
+  rapor: async (days = 7) => unwrap(await api.get("/admin/engine/rapor", { days })),
+  ekonomi: async (days = 30, koridor_id) => unwrap(await api.get("/admin/engine/ekonomi", { days, koridor_id })),
+  baseline: async () => unwrap(await api.get("/admin/engine/baseline")),
+  setBaseline: (body) => api.post("/admin/engine/baseline", body),
+  simulasi: async (body) => unwrap(await api.post("/admin/engine/simulasi", body)),
+  skenario: async () => unwrap(await api.get("/admin/engine/skenario")),
+  laporanBaru: async () => unwrap(await api.post("/admin/asisten/laporan", undefined, { timeoutMs: 30_000 })),
+  proposals: (params) => api.get("/admin/proposals", params), // → { data, menunggu }
+  setuju: (id, catatan) => api.post(`/admin/proposals/${id}/setuju`, { catatan }),
+  tolak: (id, catatan) => api.post(`/admin/proposals/${id}/tolak`, { catatan }), // → { data, perbaikan }
+  revisi: async (id) => unwrap(await api.post(`/admin/proposals/${id}/revisi`)),
+  followUps: async (kind) => unwrap(await api.get("/admin/follow-ups", { kind })),
+  addFollowUp: (body) => api.post("/admin/follow-ups", body),
+  setFollowUp: (id, body) => api.put(`/admin/follow-ups/${id}`, body),
+  qrPoints: async () => unwrap(await api.get("/admin/qr-points")),
+};

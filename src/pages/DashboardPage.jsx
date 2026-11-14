@@ -10,7 +10,7 @@ import { FitTo, MapView, PinLabel } from "../components/map/MapView";
 import { useSettings } from "../context/SettingsContext";
 import { useAsync } from "../hooks/useAsync";
 import { cityAggregate, koridorLabel, useEnvironment } from "../hooks/useEnvironment";
-import { devices, festivals, mood, users } from "../services/jejakwangi";
+import { devices, engine, festivals, mood, users } from "../services/jejakwangi";
 import { MOOD_LEVELS, TONE, aqiInfo, bisingInfo, kelembapanInfo, koridorPosition, suhuInfo, uvInfo } from "../lib/env";
 import { formatTanggal, fmtNum, pct, todayISO } from "../lib/format";
 import { circleAreaHa } from "../lib/geo";
@@ -19,13 +19,14 @@ const safe = (p, fallback = null) => p.catch(() => fallback);
 
 function useDashboardData() {
   return useAsync(async () => {
-    const [events, moodSummary, activity, dev] = await Promise.all([
+    const [events, moodSummary, activity, dev, neraca] = await Promise.all([
       safe(festivals.list({ all: "", upcoming: 1, per_page: 3 })),
       safe(mood.summary({ days: 30 })),
       safe(users.activityMonthly(5), []),
       safe(devices.list()),
+      safe(engine.neraca(7)),
     ]);
-    return { events: events?.data ?? [], moodSummary, activity, dev };
+    return { events: events?.data ?? [], moodSummary, activity, dev, neraca };
   }, [], { interval: 60_000 });
 }
 
@@ -76,6 +77,12 @@ export default function DashboardPage() {
         <EventsCard dash={dash} />
         <GeofenceCard env={env} />
         <SensorCard dash={dash} />
+      </div>
+
+      <div className="grid gap-4 mt-4 grid-cols-1 lg:grid-cols-3">
+        <SolarBenchCard dash={dash} />
+        <NeracaCard dash={dash} />
+        <AvoidedCard dash={dash} />
       </div>
     </>
   );
@@ -214,6 +221,70 @@ function SensorCard({ dash }) {
             <li className="flex justify-between text-brand-700">Aktif <b className="text-ok">{aktif} Unit</b></li>
             <li className="flex justify-between text-brand-700">Maintenance <b className="text-warn">{perawatan} Unit</b></li>
             <li className="flex justify-between text-brand-700">Offline <b className="text-danger">{off} Unit</b></li>
+          </ul>
+        </>
+      )}
+    </Card>
+  );
+}
+
+// Panel dari Database per jam (7 hari): Smart Solar-Bench, Neraca Karbon Koridor, Emisi Terhindar Personal.
+function SolarBenchCard({ dash }) {
+  const k = dash.data?.neraca?.kawasan;
+  const kor = (dash.data?.neraca?.koridor ?? []).filter((r) => r.surya_kwh > 0);
+  return (
+    <Card className="p-5 lg:col-span-1">
+      <CardTitle right={<Link to="/tindak-lanjut" className="text-xs font-semibold text-brand-700 hover:underline">Tindak lanjut</Link>}>Smart Solar-Bench & Restorative Canopy</CardTitle>
+      {dash.loading && !dash.data ? <Skeleton className="h-40 mt-4" /> : !k ? <EmptyState title="Belum ada data per jam" message="Jalankan php artisan jejakwangi:cycle-check atau tunggu data sensor." /> : (
+        <>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="rounded-xl bg-canvas p-3"><p className="text-xs text-muted">Energi surya terpakai</p><p className="text-2xl font-bold text-brand-700">{fmtNum(k.surya_kwh, 1)} <span className="text-sm">kWh</span></p></div>
+            <div className="rounded-xl bg-canvas p-3"><p className="text-xs text-muted">Selisih suhu kanopi</p><p className="text-2xl font-bold text-brand-700">{k.selisih_suhu_rata != null ? fmtNum(k.selisih_suhu_rata, 1) : "—"} <span className="text-sm">°C</span></p></div>
+          </div>
+          <ul className="divide-y divide-brand-200 mt-3 text-[13px]">
+            {kor.slice(0, 4).map((r) => <li key={r.koridor_id} className="py-2 flex justify-between text-brand-700"><span className="truncate pr-2">{r.koridor}</span><b>{fmtNum(r.surya_kwh, 2)} kWh</b></li>)}
+          </ul>
+          <p className="text-[11px] text-muted mt-3">7 hari terakhir. Selisih = suhu area terbuka − suhu di bawah kanopi.</p>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function NeracaCard({ dash }) {
+  const k = dash.data?.neraca?.kawasan;
+  return (
+    <Card className="p-5">
+      <CardTitle right={<Link to="/cara-menghitung" className="text-xs font-semibold text-brand-700 hover:underline">Cara menghitung</Link>}>Neraca Karbon Kawasan</CardTitle>
+      {dash.loading && !dash.data ? <Skeleton className="h-40 mt-4" /> : !k ? <EmptyState title="Belum ada data per jam" /> : (
+        <>
+          <p className={`text-[32px] font-bold mt-4 ${k.neraca_kg >= 0 ? "text-ok" : "text-warn"}`}>{fmtNum(k.neraca_kg, 0)} <span className="text-base">kg CO₂e</span></p>
+          <p className="text-xs text-muted mb-3">{k.neraca_kg >= 0 ? "Surplus" : "Defisit"} 7 hari · rasio serapan {k.rasio_persen != null ? `${fmtNum(k.rasio_persen, 1)}%` : "—"}</p>
+          <ul className="space-y-2 text-[13px] text-brand-700">
+            <li className="flex justify-between">Serapan pohon <b>{fmtNum(k.serapan_kg, 0)} kg</b></li>
+            <li className="flex justify-between">Emisi kendaraan <b>{fmtNum(k.emisi_kendaraan_kg, 0)} kg</b></li>
+            <li className="flex justify-between">Emisi AC toko <b>{fmtNum(k.emisi_ac_kg, 0)} kg</b></li>
+            <li className="flex justify-between">Terhindar (jalan, surya, plastik) <b>{fmtNum(k.terhindar_kg, 1)} kg</b></li>
+          </ul>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function AvoidedCard({ dash }) {
+  const k = dash.data?.neraca?.kawasan;
+  const segs = k ? [{ label: "Pohon", value: k.serapan_kg, color: "#3f6e45" }, { label: "Terhindar", value: Math.max(k.terhindar_kg, 0.01), color: "#277cb1" }] : [];
+  return (
+    <Card className="p-5">
+      <CardTitle>Personal Avoided-Emission</CardTitle>
+      {dash.loading && !dash.data ? <Skeleton className="h-40 mt-4" /> : !k ? <EmptyState title="Belum ada data" /> : (
+        <>
+          <div className="flex justify-center my-4"><Donut size={140} thickness={22} segments={segs} center={{ value: fmtNum(k.terhindar_kg, 1), label: "kg terhindar" }} /></div>
+          <ul className="space-y-2 text-[13px] text-brand-700">
+            <li className="flex justify-between">Check-in QR dihitung <b>{fmtNum(k.checkin)}</b></li>
+            <li className="flex justify-between">Kantong plastik terhindar <b>{fmtNum(k.plastik_terhindar)}</b></li>
+            <li className="flex justify-between">Sisa pangan pasar ditimbang <b>{fmtNum(k.sisa_pangan_kg, 1)} kg</b></li>
           </ul>
         </>
       )}

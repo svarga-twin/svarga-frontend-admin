@@ -72,7 +72,7 @@ const val = (readings, key) => (readings?.[key]?.value != null ? Number(readings
  * Gabungkan snapshot live + baseline koridor menjadi satu objek kondisi.
  * - AQI: sensor `air_quality` → ISPU dari polutan → ISPU dari PM2.5 baseline.
  * - Suhu: sensor `temperature` → baseline.
- * - Kelembapan / UV / Kebisingan: belum ada sensor di sensor_readings, jadi baseline koridor.
+ * - Kelembapan: sensor `humidity` (DHT11/22) → baseline. UV / Kebisingan: belum ada sensor, jadi baseline koridor.
  */
 export function mergeCondition(koridor, snapshot) {
   const readings = snapshot?.readings || {};
@@ -105,7 +105,7 @@ export function mergeCondition(koridor, snapshot) {
     koridor,
     aqi, aqiSource, aqiInfo: aqiInfo(aqi),
     suhu, suhuSource, suhuInfo: suhuInfo(suhu),
-    kelembaban: base.kelembaban != null ? Number(base.kelembaban) : null,
+    kelembaban: val(readings, "humidity") ?? (base.kelembaban != null ? Number(base.kelembaban) : null),
     kebisingan: base.kebisingan != null ? Number(base.kebisingan) : null,
     uv: base.uv_index != null ? Number(base.uv_index) : null,
     pollutants, ispu,
