@@ -1,5 +1,38 @@
+# ===== JEJAK WANGI — admin (Vite + React) =====
+
+# Dependensi & hasil build
 node_modules
 dist
+dist-ssr
+coverage
+
+# Konfigurasi lokal — JANGAN di-commit (alamat API/kunci khusus mesinmu); contoh ada di .env.example
 .env
-.env.local
+.env.*
+!.env.example
+*.local
+
+# Log
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cache tool
+.vite
+.eslintcache
+*.tsbuildinfo
+
+# Editor & OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
