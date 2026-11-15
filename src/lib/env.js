@@ -95,7 +95,7 @@ export function mergeCondition(koridor, snapshot) {
   if (aqi != null) aqi = Math.round(aqi);
 
   let suhu = val(readings, "temperature");
-  let suhuSource = suhu != null ? "sensor" : null;
+  let suhuSource = suhu != null ? (readings?.temperature?.source === "open-meteo" ? "open-meteo" : "sensor") : null;
   if (suhu == null && base.suhu != null) { suhu = Number(base.suhu); suhuSource = "baseline"; }
 
   const hasLive = Object.keys(readings).length > 0;

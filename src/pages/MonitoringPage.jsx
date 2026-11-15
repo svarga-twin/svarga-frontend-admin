@@ -131,6 +131,7 @@ export default function MonitoringPage() {
 
 function SourceBadge({ source }) {
   if (source === "sensor" || source === "ispu") return <Badge tone="ok">Sensor live</Badge>;
+  if (source === "open-meteo") return <Badge tone="muted">Open-Meteo (cadangan)</Badge>;
   if (source === "baseline") return <Badge tone="muted">Baseline</Badge>;
   return <span className="text-muted">—</span>;
 }
