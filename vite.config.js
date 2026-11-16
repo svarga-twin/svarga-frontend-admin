@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 // CORS backend (config/cors.php) sudah mengizinkan localhost:<port apa pun>.
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { port: 5174, host: true },
+  server: { port: 5174, host: true, allowedHosts: true },
   preview: { port: 5174, host: true },
   test: { environment: "jsdom", include: ["src/**/*.test.{js,jsx}"] },
 });
