@@ -15,7 +15,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useAsync } from "../hooks/useAsync";
 import { cityAggregate, koridorLabel, useEnvironment } from "../hooks/useEnvironment";
 import { sensors } from "../services/jejakwangi";
-import { SENSOR_UNIT, TONE, aqiInfo, avg, bisingInfo, kelembapanInfo, suhuInfo, uvInfo } from "../lib/env";
+import { SENSOR_UNIT, TONE, aqiInfo, avg, bisingInfo, kelembapanInfo, suhuInfo, tekananInfo, uvInfo } from "../lib/env";
 import { POLLUTANTS, toIspuIndex, ispuCategory } from "../lib/ispu";
 import { ago, fmtNum, pct } from "../lib/format";
 
@@ -118,7 +118,7 @@ export default function MonitoringPage() {
             </>
           )}
 
-          {tab === "kelembapan" && <BaselineTab title="Kelembapan per Lokasi" unit="%" pick={(c) => c.kelembaban} info={kelembapanInfo} max={100} conditions={conditions} loading={loading} onDetail={setDetail} />}
+          {tab === "kelembapan" && <BaselineTab title="Kelembapan per Lokasi" unit="%" pick={(c) => c.kelembaban} source={(c) => c.kelembabanSource} info={kelembapanInfo} max={100} conditions={conditions} loading={loading} onDetail={setDetail} />}
           {tab === "uv" && <BaselineTab title="Indeks UV per Lokasi" unit="" pick={(c) => c.uv} info={uvInfo} max={11} conditions={conditions} loading={loading} onDetail={setDetail} digits={1} />}
           {tab === "kebisingan" && <BaselineTab title="Kebisingan per Lokasi" unit=" dB" pick={(c) => c.kebisingan} info={bisingInfo} max={100} conditions={conditions} loading={loading} onDetail={setDetail} />}
         </>
@@ -222,16 +222,18 @@ function LocationTable({ conditions, loading, onDetail }) {
     <Card className="p-5">
       <CardTitle>Data Kualitas Udara per Lokasi</CardTitle>
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-canvas"><tr><Th>Lokasi</Th><Th>AQI</Th><Th>Status</Th><Th>Suhu</Th><Th>Update Terakhir</Th><Th>Aksi</Th></tr></thead>
+        <table className="w-full text-sm min-w-[820px]">
+          <thead className="bg-canvas"><tr><Th>Lokasi</Th><Th>AQI</Th><Th>Status</Th><Th>Suhu</Th><Th>Kelembapan</Th><Th>Tekanan</Th><Th>Update Terakhir</Th><Th>Aksi</Th></tr></thead>
           <tbody>
-            {loading && Array.from({ length: 4 }).map((_, i) => <tr key={i} className="border-b border-brand-200/70"><td colSpan={6} className="p-3"><Skeleton className="h-6" /></td></tr>)}
+            {loading && Array.from({ length: 4 }).map((_, i) => <tr key={i} className="border-b border-brand-200/70"><td colSpan={8} className="p-3"><Skeleton className="h-6" /></td></tr>)}
             {!loading && conditions.map((c) => (
               <tr key={c.koridor.id} className="border-b border-brand-200/70 last:border-0">
                 <td className="px-4 py-3.5 font-semibold text-brand-700">{koridorLabel(c.koridor)}</td>
                 <td className="px-4 py-3.5 font-bold text-brand-700">{c.aqi ?? "—"}</td>
                 <td className="px-4 py-3.5"><Badge tone={c.aqiInfo.tone}>{c.aqiInfo.label}</Badge></td>
                 <td className="px-4 py-3.5 text-muted-2">{c.suhu == null ? "—" : `${fmtNum(c.suhu)}°C`}</td>
+                <td className="px-4 py-3.5 text-muted-2">{c.kelembaban == null ? "—" : `${fmtNum(c.kelembaban)}%`}</td>
+                <td className="px-4 py-3.5 text-muted-2">{c.tekanan == null ? "—" : `${fmtNum(c.tekanan, 1)} hPa`}</td>
                 <td className="px-4 py-3.5 text-muted-2">{c.hasLive ? ago(c.updatedAt) : <Badge tone="muted">Baseline</Badge>}</td>
                 <td className="px-4 py-3.5"><button onClick={() => onDetail(c)} className="font-semibold text-brand-700 hover:underline">Detail</button></td>
               </tr>
@@ -269,12 +271,12 @@ function ValueTable({ title, conditions, columns, loading, onDetail }) {
 }
 
 /** Kelembapan/UV/Kebisingan: belum ada sensor di sensor_readings → tampilkan snapshot baseline koridor. */
-function BaselineTab({ title, unit, pick, info, max, conditions, loading, onDetail, digits = 0 }) {
+function BaselineTab({ title, unit, pick, info, max, conditions, loading, onDetail, digits = 0, source }) {
   return (
     <>
       <div className="flex gap-3 items-start rounded-xl bg-info-bg text-info px-4 py-3 text-[13px] mb-4">
         <Info size={17} className="mt-0.5 shrink-0" />
-        <p>Parameter ini belum punya sensor live di backend (<code>sensor_readings</code> baru mencakup suhu, AQI, dan polutan). Nilai di bawah berasal dari <b>snapshot baseline koridor</b> dan akan otomatis berganti begitu sensornya terpasang.</p>
+        <p>Nilai memakai <b>sensor live</b> (kelembapan dari DHT11) bila perangkat mengirimnya; selebihnya dari <b>snapshot baseline koridor</b> dan otomatis berganti begitu sensornya terpasang (UV dan kebisingan belum punya sensor di <code>sensor_readings</code>).</p>
       </div>
       <Card className="p-5 mb-4">
         <CardTitle>{title}</CardTitle>
@@ -293,7 +295,7 @@ function BaselineTab({ title, unit, pick, info, max, conditions, loading, onDeta
         </ul>
       </Card>
       <ValueTable title="Detail per Lokasi" conditions={conditions} loading={loading} onDetail={onDetail}
-        columns={[{ h: "NILAI", v: (c) => { const v = pick(c); return v == null ? "—" : `${fmtNum(v, digits)}${unit}`; } }, { h: "STATUS", v: (c) => { const i = info(pick(c)); return <Badge tone={i.tone}>{i.label}</Badge>; } }, { h: "SUMBER", v: () => <Badge tone="muted">Baseline</Badge> }]} />
+        columns={[{ h: "NILAI", v: (c) => { const v = pick(c); return v == null ? "—" : `${fmtNum(v, digits)}${unit}`; } }, { h: "STATUS", v: (c) => { const i = info(pick(c)); return <Badge tone={i.tone}>{i.label}</Badge>; } }, { h: "SUMBER", v: (c) => (source?.(c) === "sensor" ? <Badge tone="ok">Sensor</Badge> : <Badge tone="muted">Baseline</Badge>) }]} />
     </>
   );
 }
@@ -306,15 +308,17 @@ function DetailModal({ c, onClose, days }) {
   return (
     <Modal open onClose={onClose} size="lg" title={koridorLabel(k)} subtitle={`${k.formal_name} — ${k.route_label || ""}`}
       footer={<><Link to={`/monitoring/koridor/${k.id}`}><Button variant="soft">Buka halaman koridor →</Button></Link><Button variant="secondary" onClick={onClose}>Tutup</Button></>}>
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-5 mb-5">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 mb-5">
         <Mini label="AQI" value={c.aqi ?? "—"} badge={<Badge tone={c.aqiInfo.tone}>{c.aqiInfo.label}</Badge>} />
         <Mini label="Suhu" value={c.suhu == null ? "—" : `${fmtNum(c.suhu, 1)}°C`} badge={<Badge tone={c.suhuInfo.tone}>{c.suhuInfo.label}</Badge>} />
         <Mini label="Kelembapan" value={c.kelembaban == null ? "—" : `${fmtNum(c.kelembaban)}%`} badge={<Badge tone={kelembapanInfo(c.kelembaban).tone}>{kelembapanInfo(c.kelembaban).label}</Badge>} />
+        <Mini label="Tekanan Udara" value={c.tekanan == null ? "—" : `${fmtNum(c.tekanan, 1)} hPa`} badge={<Badge tone={tekananInfo(c.tekanan).tone}>{tekananInfo(c.tekanan).label}</Badge>} />
+        <Mini label="Ketinggian" value={c.ketinggian == null ? "—" : `${fmtNum(c.ketinggian, 1)} m`} badge={<Badge tone="muted">Perkiraan</Badge>} />
         <Mini label="Indeks UV" value={c.uv ?? "—"} badge={<Badge tone={uvInfo(c.uv).tone}>{uvInfo(c.uv).label}</Badge>} />
         <Mini label="Kebisingan" value={c.kebisingan == null ? "—" : `${fmtNum(c.kebisingan)} dB`} badge={<Badge tone={bisingInfo(c.kebisingan).tone}>{bisingInfo(c.kebisingan).label}</Badge>} />
       </div>
       <p className="text-xs text-muted mb-4">
-        {c.hasLive ? `Data live dari sensor — diperbarui ${ago(c.updatedAt)}.` : "Belum ada data live; AQI & suhu memakai snapshot baseline koridor."} Kelembapan, UV, dan kebisingan dari snapshot baseline.
+        {c.hasLive ? `Data live dari sensor — diperbarui ${ago(c.updatedAt)}.` : "Belum ada data live; AQI & suhu memakai snapshot baseline koridor."} Kelembapan memakai DHT11 bila terpasang; tekanan & ketinggian dari BMP280 (ketinggian dihitung dari tekanan standar 1013,25 hPa, bisa bergeser belasan meter). UV dan kebisingan dari snapshot baseline.
       </p>
       {Object.values(c.pollutants).some((v) => v != null) && (
         <div className="mb-5">

@@ -36,6 +36,7 @@ export function cityAggregate(conditions) {
     aqi: avg(conditions.map((c) => c.aqi)),
     suhu: avg(conditions.map((c) => c.suhu)),
     kelembaban: avg(conditions.map((c) => c.kelembaban)),
+    tekanan: avg(conditions.map((c) => c.tekanan)),
     kebisingan: avg(conditions.map((c) => c.kebisingan)),
     uv: avg(conditions.map((c) => c.uv)),
     best, worst,

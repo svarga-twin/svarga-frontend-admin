@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Droplet, ImageOff, Sun, Thermometer, Volume2, Wind } from "lucide-react";
+import { Droplet, Gauge, ImageOff, Sun, Thermometer, Volume2, Wind } from "lucide-react";
 import { PageHeader } from "../components/ui/PageHeader";
 import { StatCard } from "../components/ui/StatCard";
 import { Card, CardTitle } from "../components/ui/Card";
@@ -11,7 +11,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useAsync } from "../hooks/useAsync";
 import { cityAggregate, koridorLabel, useEnvironment } from "../hooks/useEnvironment";
 import { devices, engine, festivals, mood, users } from "../services/jejakwangi";
-import { MOOD_LEVELS, TONE, aqiInfo, bisingInfo, kelembapanInfo, koridorPosition, suhuInfo, uvInfo } from "../lib/env";
+import { MOOD_LEVELS, TONE, aqiInfo, bisingInfo, kelembapanInfo, koridorPosition, suhuInfo, tekananInfo, uvInfo } from "../lib/env";
 import { formatTanggal, fmtNum, pct, todayISO } from "../lib/format";
 import { circleAreaHa } from "../lib/geo";
 
@@ -54,7 +54,7 @@ export default function DashboardPage() {
         <Card className="p-4 mb-5 border-danger/30 bg-danger-bg text-sm text-danger">{env.error.message}</Card>
       )}
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Kualitas Udara (AQI)" icon={Wind} iconColor="#2e7d32" loading={loadingEnv} value={stat(agg.aqi)} badge={{ text: aqi.label, tone: aqi.tone }}
           sub={agg.best ? `Terbaik di ${koridorLabel(agg.best.koridor)}` : "Belum ada data sensor"} />
         <StatCard label="Indeks UV" icon={Sun} iconColor="#2e7d32" loading={loadingEnv} value={stat(agg.uv)} badge={{ text: uv.label, tone: uv.tone }}
@@ -65,6 +65,8 @@ export default function DashboardPage() {
           sub={agg.loudest ? `Tertinggi: ${koridorLabel(agg.loudest.koridor)}` : "—"} />
         <StatCard label="Kelembapan" icon={Droplet} iconColor="#277cb1" loading={loadingEnv} value={stat(agg.kelembaban)} unit="%" badge={{ text: lembab.label, tone: lembab.tone }}
           sub={lembab.label === "Nyaman" ? "Sirkulasi udara ideal" : lembab.label === "Lembab" ? "Udara cenderung lembab" : "Udara cenderung kering"} />
+        <StatCard label="Tekanan Udara" icon={Gauge} iconColor="#277cb1" loading={loadingEnv} value={agg.tekanan == null ? "—" : fmtNum(agg.tekanan, 1)} unit={agg.tekanan == null ? "" : " hPa"} badge={{ text: tekananInfo(agg.tekanan).label, tone: tekananInfo(agg.tekanan).tone }}
+          sub={agg.tekanan == null ? "BMP280 belum mengirim data" : "Rata-rata sensor BMP280"} />
       </div>
 
       <div className="grid gap-4 mt-4 grid-cols-1 lg:grid-cols-3">

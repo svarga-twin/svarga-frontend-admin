@@ -122,7 +122,7 @@ sequenceDiagram
 
     loop setiap 15 detik
         E->>E: baca suhu & kelembapan
-        E->>B: POST /sensors/readings {temperature, humidity} + X-Device-Key
+        E->>B: POST /sensors/readings {temperature, humidity, pressure, altitude} + X-Device-Key
         B->>B: validasi, cek kunci & throttle 20/menit
         B->>D: simpan sensor_readings (koridor dari data perangkat)
         B-->>E: 201 {ok, n, t}
@@ -349,13 +349,13 @@ POST /api/sensors/readings
 X-Device-Key: svg_xxxxxxxx
 Content-Type: application/json
 
-{"temperature": 30.2, "humidity": 70}
+{"temperature": 29.9, "humidity": 79, "pressure": 1010.5, "altitude": 22.9}
 ```
 ```json
-{"ok": true, "n": 2, "t": 1790000000}
+{"ok": true, "n": 4, "t": 1790000000}
 ```
 
-Jenis sensor yang diterima: `temperature`, `humidity`, `air_quality`, `pm25`, `pm10`, `so2`, `co`, `o3`, `no2`, `co2`, `o2`, `temperature_open`, `solar_w`, `vehicle_motor`, `vehicle_car`. Bentuk multi-wilayah (`{"wilayah":[{"no":1,...}]}`) dan field `aktif` juga didukung.
+Jenis sensor yang diterima: `temperature`, `humidity`, `pressure`, `altitude`, `air_quality`, `pm25`, `pm10`, `so2`, `co`, `o3`, `no2`, `co2`, `o2`, `temperature_open`, `solar_w`, `vehicle_motor`, `vehicle_car`. Bentuk multi-wilayah (`{"wilayah":[{"no":1,...}]}`) dan field `aktif` juga didukung.
 
 Contoh balasan `GET /sensors/snapshot?koridor_id=1`:
 

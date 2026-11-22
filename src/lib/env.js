@@ -34,6 +34,13 @@ export function kelembapanInfo(p) {
   if (p <= 70) return { label: "Nyaman", tone: "info" };
   return { label: "Lembab", tone: "warn" };
 }
+/** Tekanan udara (hPa, BMP280). Standar permukaan laut 1013,25 hPa; di Banyuwangi (dataran rendah) normalnya ±1005–1015. */
+export function tekananInfo(p) {
+  if (p == null) return { label: "—", tone: "muted" };
+  if (p < 1005) return { label: "Rendah", tone: "warn" };
+  if (p <= 1020) return { label: "Normal", tone: "info" };
+  return { label: "Tinggi", tone: "warn" };
+}
 export function uvInfo(u) {
   if (u == null) return { label: "—", tone: "muted" };
   if (u <= 3) return { label: "Rendah", tone: "ok" };
@@ -72,7 +79,7 @@ const val = (readings, key) => (readings?.[key]?.value != null ? Number(readings
  * Gabungkan snapshot live + baseline koridor menjadi satu objek kondisi.
  * - AQI: sensor `air_quality` → ISPU dari polutan → ISPU dari PM2.5 baseline.
  * - Suhu: sensor `temperature` → baseline.
- * - Kelembapan: sensor `humidity` (DHT11/22) → baseline. UV / Kebisingan: belum ada sensor, jadi baseline koridor.
+ * - Kelembapan: sensor `humidity` (DHT11/22) → baseline. Tekanan & ketinggian: sensor `pressure` / `altitude` (BMP280), opsional. UV / Kebisingan: belum ada sensor, jadi baseline koridor.
  */
 export function mergeCondition(koridor, snapshot) {
   const readings = snapshot?.readings || {};
@@ -106,6 +113,10 @@ export function mergeCondition(koridor, snapshot) {
     aqi, aqiSource, aqiInfo: aqiInfo(aqi),
     suhu, suhuSource, suhuInfo: suhuInfo(suhu),
     kelembaban: val(readings, "humidity") ?? (base.kelembaban != null ? Number(base.kelembaban) : null),
+    kelembabanSource: val(readings, "humidity") != null ? "sensor" : "baseline",
+    // BMP280: tanpa baseline — kosong bila sensor tidak terpasang. Ketinggian hanya info tambahan (kurang akurat).
+    tekanan: val(readings, "pressure"),
+    ketinggian: val(readings, "altitude"),
     kebisingan: base.kebisingan != null ? Number(base.kebisingan) : null,
     uv: base.uv_index != null ? Number(base.uv_index) : null,
     pollutants, ispu,
@@ -131,6 +142,6 @@ export function koridorPosition(k, greenSpaces = [], geofences = []) {
 }
 
 export const SENSOR_LABEL = {
-  temperature: "Suhu", air_quality: "Kualitas Udara", pm25: "PM2.5", pm10: "PM10", so2: "SO₂", co: "CO", o3: "O₃", no2: "NO₂", co2: "CO₂", o2: "O₂",
+  temperature: "Suhu", humidity: "Kelembapan", pressure: "Tekanan Udara", altitude: "Ketinggian", air_quality: "Kualitas Udara", pm25: "PM2.5", pm10: "PM10", so2: "SO₂", co: "CO", o3: "O₃", no2: "NO₂", co2: "CO₂", o2: "O₂",
 };
-export const SENSOR_UNIT = { temperature: "°C", air_quality: "AQI", pm25: "µg/m³", pm10: "µg/m³", so2: "µg/m³", co: "µg/m³", o3: "µg/m³", no2: "µg/m³", co2: "ppm", o2: "%" };
+export const SENSOR_UNIT = { temperature: "°C", humidity: "%", pressure: "hPa", altitude: "m", air_quality: "AQI", pm25: "µg/m³", pm10: "µg/m³", so2: "µg/m³", co: "µg/m³", o3: "µg/m³", no2: "µg/m³", co2: "ppm", o2: "%" };
